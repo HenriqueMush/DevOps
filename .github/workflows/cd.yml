@@ -1,0 +1,26 @@
+name: CD (artifact)
+on:
+  pull_request: {}
+  push:
+    branches: ["main"]
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Valida Dockerfile (opcional)
+      - if: hashFiles('Dockerfile') != ''
+        run: docker build -t cd-test .
+
+      # Empacota o conteúdo do commit atual num zip (sem copiar '.' pra dentro de si)
+      - run: |
+          mkdir out
+          git archive --format=zip --output=out/source.zip HEAD
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: source-package
+          path: out/source.zip
+
