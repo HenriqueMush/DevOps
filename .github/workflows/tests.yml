@@ -24,9 +24,12 @@ jobs:
       - name: Run tests
         run: npm test
 
-      - name: Upload coverage (artifact)
+      - name: Notify Discord (always)
         if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage
-          path: coverage
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          STATUS: ${{ job.status }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          payload=$(jq -n --arg c ":rocket: **${{ github.repository }}** — Tests finalizados: **$STATUS**. Ver detalhes: $RUN_URL" '{content:$c}')
+          curl -fsSL -H "Content-Type: application/json" -d "$payload" "$WEBHOOK"
