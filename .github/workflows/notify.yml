@@ -3,21 +3,41 @@ name: Notify to Discord
 on:
   workflow_run:
     workflows: ["Tests"] 
-    types:
-      - completed
+    types: [completed]
 
 jobs:
   notify:
     runs-on: ubuntu-latest
+
     steps:
+      - name: Check secret exists
+        run: |
+          if [ -z "${{ secrets.DISCORD_WEBHOOK }}" ]; then
+            echo "::error::Secret DISCORD_WEBHOOK não encontrado."
+            exit 1
+          fi
+          echo "Secret OK."
+
       - name: Send Discord message
-        if: always()
         env:
           WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
           REPO: ${{ github.repository }}
           STATUS: ${{ github.event.workflow_run.conclusion }}
           URL: ${{ github.event.workflow_run.html_url }}
         run: |
-          curl -sS -H "Content-Type: application/json" \
-            -d "{\"content\":\":rocket: **$REPO** - Tests finalizados\nStatus: **$STATUS**\nRun: $URL\"}" \
-            "$WEBHOOK"
+          msg=":rocket: **$REPO** – Tests finalizados%0AStatus: **$STATUS**%0ARun: $URL"
+          # Monta JSON com a mensagem (sem precisar de jq)
+          data="{\"content\":\"$msg\"}"
+
+          echo "Enviando para Discord..."
+          # --fail-with-body faz o passo falhar em 4xx/5xx e mostra o corpo
+          curl -sS -X POST \
+               -H "Content-Type: application/json" \
+               --fail-with-body \
+               -d "$data" \
+               "$WEBHOOK" \
+               -w "\nHTTP %{http_code}\n"
+          echo "OK"
+
+      - name: Done
+        run: echo "Notificação enviada."
