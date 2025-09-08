@@ -8,3 +8,5 @@ Projeto da disciplina.
 - [ ] Docker
 
 (re-run tests for Somativa 2)
+
+(re-run tests for Somativa 2)
