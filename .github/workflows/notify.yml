@@ -1,0 +1,23 @@
+name: Notify to Discord
+
+on:
+  workflow_run:
+    workflows: ["Tests"] 
+    types:
+      - completed
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Discord message
+        if: always()
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          REPO: ${{ github.repository }}
+          STATUS: ${{ github.event.workflow_run.conclusion }}
+          URL: ${{ github.event.workflow_run.html_url }}
+        run: |
+          curl -sS -H "Content-Type: application/json" \
+            -d "{\"content\":\":rocket: **$REPO** - Tests finalizados\nStatus: **$STATUS**\nRun: $URL\"}" \
+            "$WEBHOOK"
