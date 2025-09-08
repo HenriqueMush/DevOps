@@ -6,3 +6,5 @@ Projeto da disciplina.
 - [ ] CI
 - [ ] CD
 - [ ] Docker
+
+(re-run tests for Somativa 2)
